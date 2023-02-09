@@ -9,6 +9,11 @@
 # specific language governing permissions and limitations under the License.
 #
 
+# blinka imports
+import time
+import board
+import digitalio
+
 import argparse
 import os
 import struct
@@ -100,6 +105,10 @@ class PorcupineDemo(Thread):
                 print('  %s (%.2f)' % (keyword, sensitivity))
             print('}')
 
+            # initialize pins
+            led = digitalio.DigitalInOut(board.D18)
+            buzzer = digitalio.DigitalInOut(board.D15)
+
             while True:
                 pcm = recorder.read()
 
@@ -109,6 +118,10 @@ class PorcupineDemo(Thread):
                 result = porcupine.process(pcm)
                 if result >= 0:
                     print('[%s] Detected %s' % (str(datetime.now()), keywords[result]))
+                    # enable buzzer and light
+                    led.value =  True
+                    buzzer.value = True
+                    time.sleep(5) # eventually turn off as to allow further demonstration
         except pvporcupine.PorcupineInvalidArgumentError as e:
             args = (
                 self._access_key,
@@ -202,9 +215,6 @@ def main():
     else:
         if args.access_key is None:
             raise ValueError("AccessKey (--access_key) is required")
-        if args.keyword_paths is None:
-            if args.keywords is None:
-                raise ValueError("Either `--keywords` or `--keyword_paths` must be set.")
 
             keyword_paths = [pvporcupine.KEYWORD_PATHS[x] for x in args.keywords]
         else:
@@ -228,3 +238,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
