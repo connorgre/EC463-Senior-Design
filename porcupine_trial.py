@@ -11,11 +11,13 @@
 
 import argparse
 import os
+import time
 import struct
 import wave
 from datetime import datetime
 from threading import Thread
-
+import board
+import digitalio
 import pvporcupine
 from pvrecorder import PvRecorder
 
@@ -100,8 +102,8 @@ class PorcupineDemo(Thread):
                 print('  %s (%.2f)' % (keyword, sensitivity))
             print('}')
 
-<<<<<<< Updated upstream
-=======
+#<<<<<<< Updated upstream
+#=======
             # initialize pins
             led = digitalio.DigitalInOut(board.D18)
             buzzer = digitalio.DigitalInOut(board.D15)
@@ -110,7 +112,7 @@ class PorcupineDemo(Thread):
             led.value = False
             buzzer.value = False
 
->>>>>>> Stashed changes
+#>>>>>>> Stashed changes
             while True:
                 pcm = recorder.read()
 
@@ -120,15 +122,15 @@ class PorcupineDemo(Thread):
                 result = porcupine.process(pcm)
                 if result >= 0:
                     print('[%s] Detected %s' % (str(datetime.now()), keywords[result]))
-<<<<<<< Updated upstream
-=======
+#<<<<<<< Updated upstream
+#=======
                     # enable buzzer and light
                     led.value =  True
                     buzzer.value = True
                     time.sleep(5) # eventually turn off as to allow further demonstration
                     led.value = False
                     buzzer.value = False
->>>>>>> Stashed changes
+#>>>>>>> Stashed changes
         except pvporcupine.PorcupineInvalidArgumentError as e:
             args = (
                 self._access_key,
