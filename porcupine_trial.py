@@ -129,10 +129,10 @@ class PorcupineDemo(Thread):
 
                     # enable buzzer and light
                     led.value =  True
-                    buzzer.value = True
+                    buzzer.value = False
                     time.sleep(5) # eventually turn off as to allow further demonstration
                     led.value = False
-                    buzzer.value = False
+                    buzzer.value = True
 
                     # Start recording audio again
                     recorder.start()
