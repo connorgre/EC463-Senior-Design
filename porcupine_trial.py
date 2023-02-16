@@ -110,7 +110,7 @@ class PorcupineDemo(Thread):
             led.direction = digitalio.Direction.OUTPUT
             buzzer.direction = digitalio.Direction.OUTPUT
             led.value = False
-            buzzer.value = False
+            buzzer.value = True # False(Low) is on
 
 #>>>>>>> Stashed changes
             while True:
@@ -124,12 +124,19 @@ class PorcupineDemo(Thread):
                     print('[%s] Detected %s' % (str(datetime.now()), keywords[result]))
 #<<<<<<< Updated upstream
 #=======
+                    # Stop recording audio to prevent overflow
+                    recorder.stop()
+
                     # enable buzzer and light
                     led.value =  True
                     buzzer.value = True
                     time.sleep(5) # eventually turn off as to allow further demonstration
                     led.value = False
                     buzzer.value = False
+
+                    # Start recording audio again
+                    recorder.start()
+
 #>>>>>>> Stashed changes
         except pvporcupine.PorcupineInvalidArgumentError as e:
             args = (
