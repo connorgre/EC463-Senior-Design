@@ -1,0 +1,3 @@
+# configuration values for the Take Notifier software
+# may have to update to account for initialization script
+radio_code: 'uuid.txt'
