@@ -1,10 +1,10 @@
 # present a set of methods for the transmitter to
 # generate a UUID and share it to reciever. This creates
 # a link between the two
-import uuid
+from uuid import uuid4
 # countio is only recognized on a cirucitpython installation
 import countio
-import yaml
+from yaml import load, FullLoader
 
 # Safely fetch the UUID from storage. Device agnostic.
 # returns a code and the uuid value on success.
@@ -13,7 +13,7 @@ def get_UUID():
     device_uuid = -1
     code, file = get_config()
     if (code < 0):
-        return -1, code
+        return device_uuid, code
     try:
         with open(file, 'r') as f:
             device_uuid = f.readlines()
@@ -21,6 +21,10 @@ def get_UUID():
     except Exception as e:
         print(e)
         code = -2
+        return device_uuid, code
+    
+    if type(device_uuid) is not str:
+        code = -3
         return device_uuid, code
     
     code = 0
@@ -33,7 +37,7 @@ def generate_UUID():
     if (code < 0):
         return device_uuid, code
 
-    device_uuid = str(uuid.uuid4())
+    device_uuid = str(uuid4())
 
     try:
         with open(file, 'w') as f:
@@ -54,7 +58,7 @@ def generate_UUID():
 def get_config():
     try:
         with open("config.yaml", 'r') as f:
-            config = yaml.load(f, Loader=yaml.FullLoader)
+            config = load(f, Loader=FullLoader)
             device_uuid = config["uuid.txt"]
             f.close()
             return  device_uuid, 0
