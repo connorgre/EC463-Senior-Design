@@ -18,67 +18,76 @@ import digitalio
 import adafruit_rfm9x
 import time
 from random import seed, randint
+from 
 
 import protocols
 
 class Radio():
-    def __init__(self):
+    def __init__(self, device_uuid):
         self.spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
         self.cs = digitalio.DigitalInOut(board.CE1)
         self.reset = digitalio.DigitalInOut(board.D25)
         self.freq = 915.0
         self.rfm9x = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
+        self.uuid = device_uuid
 
 
-    def SendTakeSignal(self, device_uuid):
-        msg = bytes("Take Signal", "utf-8")
+    def SendTakeSignal(self):
+        msg = bytes(self.uuid, " Take Signal", "utf-8")
         for i in range(10):
             self.rfm9x.send(msg)
-            time.sleep(.1)
+            # sleep for random fraction of seconds
+            time.sleep(randint(1, 5) / 10) 
     
-    def SendPairSignal(self, device_uuid):
-        msg = bytes(device_uuid, " PAIR")
+    # SendPairSignal and SendACK function with the principles of reliable data transfer
+    def SendPairSignal(self):
+        msg = bytes(self.uuid, " PAIR", "utf-8")
+
     
-    def SendACK(self, device_uuid):
-        msg = bytes(device_uuid, " ACK")
+    def SendACK(self):
+        msg = bytes(self.uuid, " ACK", "utf-8")
     
-    def listen(self, device_uuid):
+    def listen(self):
         msg = self.rfm9x.receive()
         if msg is not None:
             msg = msg.split()
-            if (msg[0] == device_uuid) and (len(msg) > 1):
+            if (msg[0] == self.uuid) and (len(msg) > 1):
                 if msg[1] == 'ACK':
                     # notify user
-                    self.SendACK(device_uuid)
+                    self.SendACK()
                     return 0
         
         return -1
                 
 
-    def SyncMode(self, device_uuid):
+    def SyncMode(self):
         isACK = -1
 
         while(isACK != 0):
-            self.SendPairSignal(device_uuid)
-            isACK = self.listen(device_uuid)
+            self.SendPairSignal()
+            isACK = self.listen()
+            self.SendACK()
+        
+
     
         return 0
+    
+    def RunMode(self):
+
             
         
 
 def main():
-    # attempt to get device's uuid
-    device_uuid, code = protocols.get_UUID()
+    # generate a new uuid
+    device_uuid, code = protocols.generate_UUID()
     if(code < 0):
-        # generate a new uuid
-        # notify switch to sync mode
-        device_uuid, code = protocols.generate_UUID()
-        if(code < 0):
-            # notify of catastrophic error
-            print("Catastrophic error has occured! Code: ", code) # TODO: convert to logging statement
+        # notify of catastrophic error
+        print("Catastrophic error has occured! Code: ", code) # TODO: convert to logging statement
 
     # go into sync mode:
     isACK = False
-    radio = Radio()
+    radio = Radio(device_uuid=device_uuid)
+
+    radio.SyncMode()
 
     while()
