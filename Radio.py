@@ -113,7 +113,7 @@ class Radio():
         assert(self.uuid != "")
         assert(len(self.uuid) == PacketHeaderLen)
 
-        msg = bytes(self.uuid + ":" + message)
+        msg = bytes(self.uuid + ":" + message, "utf-8")
         result = False
 
         # retries needs to be at least 1 so we send the first message
