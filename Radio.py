@@ -12,15 +12,23 @@ AckStr     = "ACK"
 TakeSignal = "TAKE"
 
 class Radio():
-    def __init__(self, isTransmitter:bool, dbg:bool, frequency:float=915.0):
+    def __init__(self, isTransmitter:bool, dbg:bool, CE:str, frequency:float=915.0):
         self.spi    = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
-        self.cs     = digitalio.DigitalInOut(board.CE1)
+        if (CE == "CE0"):
+            self.cs = digitalio.DigitalInOut(board.CE0)
+        elif (CE == "CE1"):
+            self.cs = digitalio.DigitalInOut(board.CE1)
+        else:
+            print("ERROR: INVALID CE [" + str(CE) + "].  Valid options are CE0 or CE1")
         self.reset  = digitalio.DigitalInOut(board.D25)
         self.freq   = 915.0
-        self.rfm9x  = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
         self.isTransmitter = isTransmitter
         self.uuid:str = ""
         self.dbg = dbg
+
+        self.rfm9x = None
+        while self.rfm9x == None:
+            self.rfm9x  = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
 
     # returns true if sync successful
     def Sync(self) -> bool:
@@ -139,7 +147,7 @@ class Radio():
 
 class Receiver:
     def __init__(self, dbg:bool):
-        self.radio = Radio(isTransmitter=False, dbg=dbg)
+        self.radio = Radio(isTransmitter=False, dbg=dbg, CE="CE0")
         self.buzzerPin = digitalio.DigitalInOut(board.D26)
         self.dbg = dbg
 
