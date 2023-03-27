@@ -2,7 +2,7 @@ from Radio import *
 
 def main():
 
-    device = Reciever(True)
+    device = Receiver(True)
     device.Sync()
     device.EnterListenLoop()
     return
