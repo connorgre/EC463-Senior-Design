@@ -9,9 +9,10 @@ import time
 PacketHeaderLen:int = 16
 SyncStr    = "SYNC"
 AckStr     = "ACK"
+TakeSignal = "TAKE"
 
 class Radio():
-    def __init__(self, isTransmitter:bool):
+    def __init__(self, isTransmitter:bool, dbg:bool, frequency:float=915.0):
         self.spi    = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
         self.cs     = digitalio.DigitalInOut(board.CE1)
         self.reset  = digitalio.DigitalInOut(board.D25)
@@ -19,35 +20,57 @@ class Radio():
         self.rfm9x  = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
         self.isTransmitter = isTransmitter
         self.uuid:str = ""
+        self.dbg = dbg
 
-    def sync(self):
+    # returns true if sync successful
+    def Sync(self) -> bool:
+
+        result = False
+        # sync as transmitter
+        # generate ID
+        # send it
+        # keep sending until we get an ACK,
+        # send confirmation of ACK
         if self.isTransmitter:
             self.uuid = ''.join(random.choices(string.ascii_letters, k=PacketHeaderLen))
 
-            gotAck = False
-            msg = bytes(self.uuid + ":" + SyncStr, "utf-8")
-            while gotAck == False:
-                self.rfm9x.send(msg)
-                recMsg = self.rfm9x.receive()
-                if recMsg != None:
-                    recStr = recMsg.decode()
-                    print("Recieved: " + recStr)
+            result = self.SendHeadedMessage(message=SyncStr, withAck=True, ackTimeout=2.0, retries=100)
+            if result == False:
+                print("Error: No Ack on sync... something went wrong")
+
+        #sync as reciever
+        # listen for packet with msg = SYNC
+        # set our UUID to what we got in the packet
+        # send an ACK packet
+        else:
+            self.uuid = ""
+            header = ""
+            recMsg = ""
+            while result == False:
+                #we actually don't need the right header for this
+                header, recMsg = self.RecieveHeadedMessage(timeout = 1, infiniteLoop=True, needRightHeader=False)
+                if None not in [header, recMsg]:
+                    if (recMsg == SyncStr) and (len(header) == PacketHeaderLen):
+                        result = True
+            self.uuid = header
+            self.SendHeadedMessage(message=AckStr)
+
+        return result
 
     def SendTakeSignal(self):
-        msg = bytes("Take Signal", "utf-8")
-        for i in range(10):
-            self.rfm9x.send(msg)
-            time.sleep(.1)
+        for _ in range(10):
+            self.SendHeadedMessage(message=TakeSignal)
+            self.sleep(.1 + random.uniform(-0.025, 0.025))
 
     # returns (header, msg, correctHeader) tuple, if no header is detected
     # whole thing is in msg, else, both are none.
     # set infiniteLoop to continuously listen
     def RecieveHeadedMessage(self,
                              timeout:float=1.0,
-                             sendAck:bool=False,
+                             sendAck:bool=True,
                              maxRetries:int=0,
                              infiniteLoop:bool=False,
-                             dbg:bool=True) -> tuple(str, str):
+                             needRightHeader:bool=True) -> "tuple[str, str]":
         keepLooping:bool = True
         numLoops:int = 0
         while keepLooping:
@@ -61,29 +84,31 @@ class Radio():
                 header, delim, msg = recStr.partition(":")
                 # if we got a header and msg
                 if "" not in [header, delim, msg]:
-                    if header == self.uuid:
-                        if sendAck:
-                            self.SendAck(dbg=dbg)
-                    elif dbg:
-                        print ("Error: Header length wrong!!")
+                    if needRightHeader:
+                        if header == self.uuid:
+                            if sendAck:
+                                self.SendAck()
+                            return (header, msg)
+                        elif self.dbg:
+                            print ("Error: Header wrong!!")
+                    else:
+                        return (header, msg)
 
-                    return (header, msg)
                 #if we didn't get one, return whole message in the msg section
                 else:
-                    if dbg:
+                    if self.dbg:
                         print("Error: No Header recieved, all in msg")
                     return (None, header)
         return (None, None)
 
-    def SendAck(self, dbg:bool=True):
-        self.SendHeadedMessage(message=AckStr, dbg=dbg)
+    def SendAck(self):
+        self.SendHeadedMessage(message=AckStr)
 
     # returns false if we didn't get an ack and wanted one
     def SendHeadedMessage(self,
                           message:str,
                           withAck:bool=False,
                           ackTimeout:float=1.0,
-                          dbg:bool=True,
                           retries:int=5) -> bool:
         assert(self.uuid != "")
         assert(len(self.uuid) == PacketHeaderLen)
@@ -98,16 +123,58 @@ class Radio():
         for i in range(retries):
             result:bool = self.rfm9x.send(msg, keep_listening=withAck)
             if withAck and result:
-                header, recMsg = self.RecieveHeadedMessage(timeout=ackTimeout, dbg=dbg)
+                header, recMsg = self.RecieveHeadedMessage(timeout=ackTimeout)
                 if header == self.uuid and recMsg == AckStr:
-                    if dbg:
+                    if self.dbg:
                         print("Got ACK with correct header: " + header)
                     return True
                 elif header != None or recMsg != None:
-                    if dbg:
+                    if self.dbg:
                         print("Wrong header or msg:")
                         print("Header: " + str(header))
                         print("recMsg: " + str(recMsg))
             else:
                 break
         return result
+
+class Reciever:
+    def __init__(self, dbg:bool):
+        self.radio = Radio(isTransmitter=False, dbg=dbg)
+        self.buzzerPin = digitalio.DigitalInOut(board.D26)
+        self.dbg = dbg
+
+        self.buzzerPin.direction = digitalio.Direction.OUTPUT
+        self.buzzerPin.value = True
+        if (dbg):
+            print("init reciever, buzz*3")
+            for i in range(3):
+                self.Buzz(0.5)
+
+    def Sync(self):
+        result = self.radio.Sync()
+        if self.dbg:
+            print("Reciever sync status: " + str(result))
+
+    def Buzz(self, buzzTime:float = 0.5):
+        if self.dbg:
+            print("Buzzing for: " + str(buzzTime))
+        self.buzzerPin.value = False
+        time.sleep(buzzTime)
+        self.buzzerPin.value = True
+
+    def EnterListenLoop(self):
+        while True:
+            try:
+                header, msg = self.radio.RecieveHeadedMessage(timeout=5.0,
+                                                                sendAck=False,
+                                                                needRightHeader=True,
+                                                                infiniteLoop=True)
+                if self.dbg:
+                    print("Header: " + header)
+                    print("Msg:    " + msg)
+                if msg == TakeSignal:
+                    self.Buzz(3.0)
+            except Exception as exc:
+                print("Exiting bc: " + str(exc))
+                break
+

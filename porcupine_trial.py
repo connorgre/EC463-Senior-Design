@@ -21,26 +21,7 @@ import digitalio
 import pvporcupine
 from pvrecorder import PvRecorder
 
-
-import board
-import busio
-import digitalio
-import adafruit_rfm9x
-import time
-
-class Radio():
-    def __init__(self):
-        self.spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
-        self.cs = digitalio.DigitalInOut(board.CE1)
-        self.reset = digitalio.DigitalInOut(board.D25)
-        self.freq = 915.0
-        self.rfm9x = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
-    
-    def SendTakeSignal(self):
-        msg = bytes("Take Signal", "utf-8")
-        for i in range(10):
-            self.rfm9x.send(msg)
-            time.sleep(.1)
+from Radio import *
 
 class PorcupineDemo(Thread):
     """
@@ -83,7 +64,8 @@ class PorcupineDemo(Thread):
 
         self._output_path = output_path
 
-        self.radio = Radio()
+        self.radio = Radio(isTransmitter=True, dbg=True)
+        self.radio.Sync()
 
     def run(self):
         """
@@ -124,6 +106,7 @@ class PorcupineDemo(Thread):
                 print('  %s (%.2f)' % (keyword, sensitivity))
             print('}')
 
+            ## WE DO NOT NEED THESE
 #<<<<<<< Updated upstream
 #=======
             # initialize pins
@@ -152,7 +135,7 @@ class PorcupineDemo(Thread):
                     # enable buzzer and light
                     led.value =  True
                     buzzer.value = False
-                    
+
                     #this takes 1 second to send
                     self.radio.SendTakeSignal()
                     #time.sleep(5) # eventually turn off as to allow further demonstration
