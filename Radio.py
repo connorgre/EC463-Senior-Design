@@ -77,6 +77,8 @@ class Radio():
         if self.dbg:
             if gotAck == False:
                 print("\tWarning, Ack not recieved!")
+            else:
+                print("\t Message sent and Ack received!")
 
     # returns (header, msg, correctHeader) tuple, if no header is detected
     # whole thing is in msg, else, both are none.
@@ -148,18 +150,25 @@ class Radio():
             retries = 1
 
         for i in range(retries):
+            if self.dbg:
+                print("\t\tAttempt: " + str(i) + "/" + str(retries))
+
             result:bool = self.rfm9x.send(msg, keep_listening=withAck)
             if withAck and result:
+                # no ack yet
+                result = False
+
                 # add a little noise
                 timeOut:float = ackTimeout + random.uniform(-0.1, 0.1)
                 header, recMsg = self.ReceiveHeadedMessage(timeout=timeOut)
                 if header == self.uuid and recMsg == AckStr:
                     if self.dbg:
                         print("\tGot ACK with correct header: " + header)
-                    return True
+                    result = True
+                    break
                 elif header != None or recMsg != None:
                     if self.dbg:
-                        print("Wrong header or msg:")
+                        print("Wrong header or msg (could be another device): ")
                         print("Header: " + str(header))
                         print("recMsg: " + str(recMsg))
             else:
