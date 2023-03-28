@@ -5,8 +5,9 @@ import adafruit_rfm9x
 import random
 import string
 import time
+import uuid
 
-PacketHeaderLen:int = 16
+PacketHeaderLen:int = len(str(uuid.uuid4()))
 SyncStr    = "SYNC"
 AckStr     = "ACK"
 TakeSignal = "TAKE"
@@ -40,7 +41,8 @@ class Radio():
         # keep sending until we get an ACK,
         # send confirmation of ACK
         if self.isTransmitter:
-            self.uuid = ''.join(random.choices(string.ascii_letters, k=PacketHeaderLen))
+            self.uuid = str(uuid.uuid4())
+            #self.uuid = ''.join(random.choices(string.ascii_letters, k=PacketHeaderLen))
 
             result = self.SendHeadedMessage(message=SyncStr, withAck=True, ackTimeout=2.0, retries=100)
             if self.dbg:
@@ -71,7 +73,7 @@ class Radio():
     def SendTakeSignal(self):
         if self.dbg:
             print("Sending Take Signal")
-        gotAck = self.SendHeadedMessage(message=TakeSignal, withAck=True, ackTimeout=4.0)
+        gotAck = self.SendHeadedMessage(message=TakeSignal, withAck=True, numRetries=15, ackTimeout=1.0)
         if self.dbg:
             if gotAck == False:
                 print("\tWarning, Ack not recieved!")
@@ -145,7 +147,9 @@ class Radio():
         for i in range(retries):
             result:bool = self.rfm9x.send(msg, keep_listening=withAck)
             if withAck and result:
-                header, recMsg = self.ReceiveHeadedMessage(timeout=ackTimeout)
+                # add a little noise
+                timeOut:float = ackTimeout + random.uniform(-0.1, 0.1)
+                header, recMsg = self.ReceiveHeadedMessage(timeout=timeOut)
                 if header == self.uuid and recMsg == AckStr:
                     if self.dbg:
                         print("\tGot ACK with correct header: " + header)
