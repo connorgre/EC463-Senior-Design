@@ -18,6 +18,7 @@ TakeSignal              :str   = "TAKE"
 NoiseStr                :str   = "NOISE"
 SyncTimeout             :float = 0.3
 TotalSyncWaitSeconds    :float = 60.0
+
 FindFrequencyListenTime:float  = 2.0
 AllowedFrequencies:"list[float]" = [float(x) for x in range(902, 928)]
 
@@ -90,13 +91,15 @@ class Radio():
         # continuously loop through frequencies looking for sync packet
         while foundFreq == False:
             for freq in AllowedFrequencies:
+                print("Checking Frequency: " + str(freq))
                 self.rfm9x.reset()
                 self.rfm9x = None
                 self.freq = freq
+
                 while self.rfm9x == None:
                     self.rfm9x  = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
-
-                header, msg = self.ReceiveHeadedMessage(timeout=SyncTimeout*3, sendAck=False, needRightHeader=False)
+                # wait for double length of SyncTimeout to guarantee at least 1 packet will be sent
+                header, msg = self.ReceiveHeadedMessage(timeout=SyncTimeout*2, sendAck=False, needRightHeader=False)
 
                 if (header != None) and (msg == SyncStr):
                     if self.dbg:
