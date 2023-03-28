@@ -64,7 +64,7 @@ class PorcupineDemo(Thread):
 
         self._output_path = output_path
 
-        self.radio = Radio(isTransmitter=True, dbg=True, CE="CE1")
+        self.radio = Radio(isTransmitter=True, dbg=True)
         self.radio.Sync()
 
     def run(self):

@@ -23,25 +23,61 @@ FindFrequencyListenTime:float  = 2.0
 AllowedFrequencies:"list[float]" = [float(x) for x in range(902, 928)]
 
 class Radio():
-    def __init__(self, isTransmitter:bool, dbg:bool, CE:str):
-        self.spi   = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
-        self.reset = digitalio.DigitalInOut(board.D25)
-        if (CE == "CE0"):
-            self.cs = digitalio.DigitalInOut(board.CE0)
-        elif (CE == "CE1"):
-            self.cs = digitalio.DigitalInOut(board.CE1)
-        else:
-            print("ERROR: INVALID CE [" + str(CE) + "].  Valid options are CE0 or CE1")
-
-
-        self.freq         :float = AllowedFrequencies[0]
-        self.isTransmitter:bool  = isTransmitter
-        self.uuid         :str   = ""
-        self.dbg          :bool  = dbg
+    def __init__(self, isTransmitter:bool, dbg:bool, frequency:float=915.0):
+        self.spi    = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
+        self.reset  = digitalio.DigitalInOut(board.D25)
+        self.freq   = 915.0
+        self.isTransmitter = isTransmitter
+        self.uuid:str = ""
+        self.dbg = dbg
 
         self.rfm9x = None
-        while self.rfm9x == None:
+        self.cs = digitalio.DigitalInOut(board.CE0)
+
+        self.ConnectToRadio()
+
+    def ConnectToRadio(self):
+        # cycle through the CE pins until we are able to sync to the board
+        nextCEtoTry = 0
+        ceUsed = 0
+
+        connected = False
+        # silently try with current CE pin without printing anything
+        if self.rfm9x != None:
+            self.rfm9x.reset()
+
+        try:
             self.rfm9x  = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
+            connected = True
+        except Exception as e:
+            if self.dbg:
+                print("Exception: " + str(e))
+                print("            ^This is expected to maybe happen once or twice.")
+            connected = False
+
+        while connected == False:
+            if (self.dbg):
+                print("\tAttempting to connect to radio")
+            if nextCEtoTry == 0:
+                self.cs = digitalio.DigitalInOut(board.CE0)
+                nextCEtoTry = 1
+            else:
+                self.cs = digitalio.DigitalInOut(board.CE1)
+                nextCEtoTry = 0
+            try:
+                self.rfm9x  = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
+                ceUsed = nextCEtoTry
+                connected = True
+            except Exception as e:
+                if self.dbg:
+                    print("Exception: " + str(e))
+                    print("            ^This is expected to maybe happen once or twice.")
+                connected = False
+
+        ceUsed = 0 if (nextCEtoTry == 1) else 1
+        if self.dbg:
+            print("\tSuccessfully paired with radio.  CE: " + str(ceUsed))
+
 
     def FindOpenFrequency(self):
         # listen for two seconds to see if there is any interference on this channel
@@ -54,11 +90,8 @@ class Radio():
         freqFound = False
         for freq in AllowedFrequencies[startFreq:] + AllowedFrequencies[:startFreq]:
             # reset the device with the new frequency
-            self.rfm9x.reset()
-            self.rfm9x = None
             self.freq = freq
-            while self.rfm9x == None:
-                self.rfm9x = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
+            self.ConnectToRadio()
 
             # send some noise to stop other radios from trying to use this frequency
             self.SendNoise()
@@ -92,12 +125,9 @@ class Radio():
         while foundFreq == False:
             for freq in AllowedFrequencies:
                 print("Checking Frequency: " + str(freq))
-                self.rfm9x.reset()
-                self.rfm9x = None
                 self.freq = freq
+                self.ConnectToRadio()
 
-                while self.rfm9x == None:
-                    self.rfm9x  = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
                 # wait for double length of SyncTimeout to guarantee at least 1 packet will be sent
                 header, msg = self.ReceiveHeadedMessage(timeout=SyncTimeout*2, sendAck=False, needRightHeader=False)
 
