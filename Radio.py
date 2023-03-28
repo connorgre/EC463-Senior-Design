@@ -47,8 +47,11 @@ class Radio():
         if self.dbg:
             print("\tFinding an open frequency.  Starting with 902 MHZ")
 
+        # want to start at a random frequency to avoid all radios clogging the lower ones
+        # if there is more than one
+        startFreq = random.randrange(len(AllowedFrequencies))
         freqFound = False
-        for freq in AllowedFrequencies:
+        for freq in AllowedFrequencies[startFreq:] + AllowedFrequencies[:startFreq]:
             # reset the device with the new frequency
             self.rfm9x.reset()
             self.rfm9x = None
