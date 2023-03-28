@@ -61,11 +61,15 @@ class Radio():
             recMsg = ""
             while result == False:
                 #we actually don't need the right header for this
+                if self.dbg:
+                    print("\tAttempting to sync as reciever")
                 header, recMsg = self.ReceiveHeadedMessage(timeout = 1, infiniteLoop=True, needRightHeader=False)
                 if None not in [header, recMsg]:
                     if (recMsg == SyncStr) and (len(header) == PacketHeaderLen):
                         result = True
             self.uuid = header
+            if self.dbg:
+                print("\tSuccessfully synced.  UUID: " + self.uuid)
             self.SendHeadedMessage(message=AckStr)
 
         return result
@@ -152,7 +156,7 @@ class Radio():
             retries = 1
 
         for i in range(retries):
-            if self.dbg:
+            if (self.dbg) and (retries > 1):
                 print("\t\tAttempt: " + str(i) + "/" + str(retries))
 
             result:bool = self.rfm9x.send(msg, keep_listening=withAck)
