@@ -131,6 +131,8 @@ class Radio():
         return (None, None)
 
     def SendAck(self):
+        if self.dbg:
+            print("\tSending Ack!")
         self.SendHeadedMessage(message=AckStr)
 
     # returns false if we didn't get an ack and wanted one
