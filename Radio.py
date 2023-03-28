@@ -11,9 +11,12 @@ PacketHeaderLen:int = len(str(uuid.uuid4()))
 SyncStr    = "SYNC"
 AckStr     = "ACK"
 TakeSignal = "TAKE"
+SyncTimeout = 0.3
+TotalSyncWaitSeconds = 60.0
+FindFrequencyListenTime = 2.0
 
 class Radio():
-    def __init__(self, isTransmitter:bool, dbg:bool, CE:str, frequency:float=915.0):
+    def __init__(self, isTransmitter:bool, dbg:bool, CE:str):
         self.spi    = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
         if (CE == "CE0"):
             self.cs = digitalio.DigitalInOut(board.CE0)
@@ -22,7 +25,7 @@ class Radio():
         else:
             print("ERROR: INVALID CE [" + str(CE) + "].  Valid options are CE0 or CE1")
         self.reset  = digitalio.DigitalInOut(board.D25)
-        self.freq   = 915.0
+        self.freq   = 902.0
         self.isTransmitter = isTransmitter
         self.uuid:str = ""
         self.dbg = dbg
@@ -31,9 +34,65 @@ class Radio():
         while self.rfm9x == None:
             self.rfm9x  = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
 
+    def FindOpenFrequency(self):
+        # listen for two seconds to see if there is any interference on this channel
+        if self.dbg:
+            print("\tFinding an open frequency.  Starting with 902 MHZ")
+
+        while True:
+            msg = self.rfm9x.receive(timeout=FindFrequencyListenTime)
+            # if we recieved any data after 2 seconds
+            if msg != None:
+                # reset the chip, increase the frequency, and re-initialize the device
+                self.rfm9x.reset()
+                self.rfm9x = None
+                self.freq += 1.0
+                if self.freq < 928.0:
+                    while self.rfm9x == None:
+                        self.rfm9x = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
+            else:
+                if self.dbg:
+                    print("\tFound open frequency: " + str(self.freq))
+                break
+
+            # if we didn't find a good frequency, choose a random one
+            if self.freq == 928.0:
+                self.freq = float(round(random.uniform(902, 928)))
+                if self.dbg:
+                    print("\tChoosing random frequency: " + str(self.freq))
+
+                self.rfm9x.reset()
+                self.rfm9x = None
+                while self.rfm9x == None:
+                    self.rfm9x = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
+                break
+
+    def FindFrequencyWithSync(self):
+        if self.dbg:
+            print("\tFinding an open frequency.  Starting with 902 MHZ")
+
+        header = ""
+        msg = ""
+        while True:
+            # listen for long enough that the transmitter would send 3 SYNC packets
+            header, msg = self.ReceiveHeadedMessage(timeout=SyncTimeout*3, sendAck=False, needRightHeader=False)
+            if header == None or msg != SyncStr:
+                # reset the chip, increase the frequency, and re-initialize the device
+                self.rfm9x.reset()
+                self.rfm9x = None
+                self.freq += 1.0
+                # wrap back around to the legal frequencies
+                if self.freq > 928.0:
+                    self.freq = 902.0
+                while self.rfm9x == None:
+                    self.rfm9x  = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
+            else:
+                if self.dbg:
+                    print("\tFound open frequency: " + str(self.freq))
+                break
+
     # returns true if sync successful
     def Sync(self) -> bool:
-
         result = False
         # sync as transmitter
         # generate ID
@@ -42,9 +101,10 @@ class Radio():
         # send confirmation of ACK
         if self.isTransmitter:
             self.uuid = str(uuid.uuid4())
-            #self.uuid = ''.join(random.choices(string.ascii_letters, k=PacketHeaderLen))
-
-            result = self.SendHeadedMessage(message=SyncStr, withAck=True, ackTimeout=2.0, retries=100)
+            self.FindOpenFrequency()
+            # send a new sync packet every 0.5 seconds
+            retries = int(TotalSyncWaitSeconds / SyncTimeout)
+            result = self.SendHeadedMessage(message=SyncStr, withAck=True, ackTimeout=SyncTimeout, retries=retries)
             if self.dbg:
                 if result == False:
                     print("Error: No Ack on sync... something went wrong")
@@ -59,6 +119,7 @@ class Radio():
             self.uuid = ""
             header = ""
             recMsg = ""
+            self.FindFrequencyWithSync()
             while result == False:
                 #we actually don't need the right header for this
                 if self.dbg:
@@ -127,11 +188,14 @@ class Radio():
                     else:
                         return (header, msg)
 
-                #if we didn't get one, return whole message in the msg section
+                # if we didn't get one, return whole message in the msg section if we aren't looking
+                # for headers
                 else:
                     if self.dbg:
-                        print("Error: No Header received, all in msg")
-                    return (None, header)
+                        print("\tPacket no header received, all in msg")
+                        print("\tMessage: " + header)
+                    if needRightHeader == False:
+                        return (None, header)
         return (None, None)
 
     def SendAck(self):
