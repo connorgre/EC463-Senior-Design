@@ -39,9 +39,8 @@ class Radio():
     def ConnectToRadio(self):
         # cycle through the CE pins until we are able to sync to the board
         nextCEtoTry = 0
-        ceUsed = 0
-
         connected = False
+        firstTry = False
         # silently try with current CE pin without printing anything
         if self.rfm9x != None:
             self.rfm9x.reset()
@@ -49,6 +48,7 @@ class Radio():
         try:
             self.rfm9x  = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
             connected = True
+            firstTry = True
         except Exception as e:
             if self.dbg:
                 print("Exception: " + str(e))
@@ -66,7 +66,6 @@ class Radio():
                 nextCEtoTry = 0
             try:
                 self.rfm9x  = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
-                ceUsed = nextCEtoTry
                 connected = True
             except Exception as e:
                 if self.dbg:
@@ -75,7 +74,7 @@ class Radio():
                 connected = False
 
         ceUsed = 0 if (nextCEtoTry == 1) else 1
-        if self.dbg:
+        if self.dbg and (firstTry == False):
             print("\tSuccessfully paired with radio.  CE: " + str(ceUsed))
 
 
