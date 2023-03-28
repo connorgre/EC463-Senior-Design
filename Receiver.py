@@ -2,7 +2,7 @@ from Radio import *
 
 class Receiver:
     def __init__(self, dbg:bool):
-        self.radio = Radio(isTransmitter=False, dbg=dbg, CE="CE0")
+        self.radio = Radio(isTransmitter=False, dbg=dbg)
         self.buzzerPin = digitalio.DigitalInOut(board.D26)
         self.dbg = dbg
 
@@ -45,7 +45,7 @@ class Receiver:
 
 def main():
 
-    device = Receiver(True)
+    device = Receiver(dbg=True)
     device.Sync()
     device.EnterListenLoop()
     return
