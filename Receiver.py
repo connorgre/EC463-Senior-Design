@@ -29,7 +29,7 @@ class Receiver:
         while True:
             try:
                 header, msg = self.radio.ReceiveHeadedMessage(timeout=5.0,
-                                                                sendAck=False,
+                                                                sendAck=True,
                                                                 needRightHeader=True,
                                                                 infiniteLoop=True)
                 if self.dbg:

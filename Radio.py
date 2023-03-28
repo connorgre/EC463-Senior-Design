@@ -43,8 +43,11 @@ class Radio():
             self.uuid = ''.join(random.choices(string.ascii_letters, k=PacketHeaderLen))
 
             result = self.SendHeadedMessage(message=SyncStr, withAck=True, ackTimeout=2.0, retries=100)
-            if result == False:
-                print("Error: No Ack on sync... something went wrong")
+            if self.dbg:
+                if result == False:
+                    print("Error: No Ack on sync... something went wrong")
+                else:
+                    print("Synced! uuid: " + self.uuid)
 
         #sync as receiver
         # listen for packet with msg = SYNC
@@ -66,9 +69,12 @@ class Radio():
         return result
 
     def SendTakeSignal(self):
-        for _ in range(10):
-            self.SendHeadedMessage(message=TakeSignal)
-            time.sleep(.1 + random.uniform(-0.025, 0.025))
+        if self.dbg:
+            print("Sending Take Signal")
+        gotAck = self.SendHeadedMessage(message=TakeSignal, withAck=True, ackTimeout=4.0)
+        if self.dbg:
+            if gotAck == False:
+                print("\tWarning, Ack not recieved!")
 
     # returns (header, msg, correctHeader) tuple, if no header is detected
     # whole thing is in msg, else, both are none.
@@ -90,9 +96,11 @@ class Radio():
             if recMsg != None:
                 try:
                     recStr:str = recMsg.decode()
+                except KeyboardInterrupt:
+                    break
                 except Exception as exc:
                     print("Exception: " + str(exc))
-                    print("\t^This is probably bad radio packet... try again")
+                    print("\t^This is probably bad radio packet... just go back to listening")
                     keepLooping = True
                     continue
                 header, delim, msg = recStr.partition(":")
@@ -140,7 +148,7 @@ class Radio():
                 header, recMsg = self.ReceiveHeadedMessage(timeout=ackTimeout)
                 if header == self.uuid and recMsg == AckStr:
                     if self.dbg:
-                        print("Got ACK with correct header: " + header)
+                        print("\tGot ACK with correct header: " + header)
                     return True
                 elif header != None or recMsg != None:
                     if self.dbg:
