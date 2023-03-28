@@ -77,7 +77,6 @@ class Radio():
         if self.dbg and (firstTry == False):
             print("\tSuccessfully paired with radio.  CE: " + str(ceUsed))
 
-
     def FindOpenFrequency(self):
         # listen for two seconds to see if there is any interference on this channel
         if self.dbg:
