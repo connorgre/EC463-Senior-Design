@@ -24,20 +24,35 @@ class Radio():
         self.rfm9x = None
         self.cs = digitalio.DigitalInOut(board.CE0)
 
+        self.ConnectToRadio()
+
+    def ConnectToRadio(self):
         # cycle through the CE pins until we are able to sync to the board
         nextCEtoTry = 0
-        while self.rfm9x == None:
+        ceUsed = 0
+
+        connected = False
+
+        while connected == False:
+            print("\tAttempting to connect to radio")
             if nextCEtoTry == 0:
                 self.cs = digitalio.DigitalInOut(board.CE0)
                 nextCEtoTry = 1
             else:
                 self.cs = digitalio.DigitalInOut(board.CE1)
                 nextCEtoTry = 0
-            self.rfm9x  = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
+            try:
+                self.rfm9x  = adafruit_rfm9x.RFM9x(self.spi, self.cs, self.reset, self.freq)
+                ceUsed = nextCEtoTry
+                connected = True
+            except Exception as e:
+                print("Exception: " + str(e))
+                print("            ^This is expected to maybe happen once or twice.")
+                connected = False
 
         ceUsed = 0 if (nextCEtoTry == 1) else 1
         if self.dbg:
-            print("Successfully paired with board.  CE: " + str(ceUsed))
+            print("\tSuccessfully paired with radio.  CE: " + str(ceUsed))
 
 
     # returns true if sync successful
