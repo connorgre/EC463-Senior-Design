@@ -114,7 +114,10 @@ class Radio():
                                 self.SendAck()
                             return (header, msg)
                         elif self.dbg:
-                            print ("Error: Header wrong!!")
+                            print("Recieved Packet with different header!")
+                            print("\tExpeced:  " + self.uuid)
+                            print("\tRecieved: " + header)
+                            print("\tMessage:  " + msg)
                     else:
                         return (header, msg)
 
