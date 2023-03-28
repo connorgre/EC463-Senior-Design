@@ -68,7 +68,7 @@ class Radio():
     def SendTakeSignal(self):
         for _ in range(10):
             self.SendHeadedMessage(message=TakeSignal)
-            self.sleep(.1 + random.uniform(-0.025, 0.025))
+            time.sleep(.1 + random.uniform(-0.025, 0.025))
 
     # returns (header, msg, correctHeader) tuple, if no header is detected
     # whole thing is in msg, else, both are none.
