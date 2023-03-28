@@ -88,7 +88,13 @@ class Radio():
 
             recMsg = self.rfm9x.receive(timeout=timeout)
             if recMsg != None:
-                recStr:str = recMsg.decode()
+                try:
+                    recStr:str = recMsg.decode()
+                except Exception as exc:
+                    print("Exception: " + str(exc))
+                    print("\t^This is probably bad radio packet... try again")
+                    keepLooping = True
+                    continue
                 header, delim, msg = recStr.partition(":")
                 # if we got a header and msg
                 if "" not in [header, delim, msg]:
@@ -144,45 +150,3 @@ class Radio():
             else:
                 break
         return result
-
-class Receiver:
-    def __init__(self, dbg:bool):
-        self.radio = Radio(isTransmitter=False, dbg=dbg, CE="CE0")
-        self.buzzerPin = digitalio.DigitalInOut(board.D26)
-        self.dbg = dbg
-
-        self.buzzerPin.direction = digitalio.Direction.OUTPUT
-        self.buzzerPin.value = True
-        if (dbg):
-            print("init receiver, buzz*3")
-            for i in range(3):
-                self.Buzz(0.5)
-
-    def Sync(self):
-        result = self.radio.Sync()
-        if self.dbg:
-            print("Receiver sync status: " + str(result))
-
-    def Buzz(self, buzzTime:float = 0.5):
-        if self.dbg:
-            print("Buzzing for: " + str(buzzTime))
-        self.buzzerPin.value = False
-        time.sleep(buzzTime)
-        self.buzzerPin.value = True
-
-    def EnterListenLoop(self):
-        while True:
-            try:
-                header, msg = self.radio.ReceiveHeadedMessage(timeout=5.0,
-                                                                sendAck=False,
-                                                                needRightHeader=True,
-                                                                infiniteLoop=True)
-                if self.dbg:
-                    print("Header: " + header)
-                    print("Msg:    " + msg)
-                if msg == TakeSignal:
-                    self.Buzz(3.0)
-            except Exception as exc:
-                print("Exiting bc: " + str(exc))
-                break
-
