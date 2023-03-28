@@ -73,7 +73,7 @@ class Radio():
     def SendTakeSignal(self):
         if self.dbg:
             print("Sending Take Signal")
-        gotAck = self.SendHeadedMessage(message=TakeSignal, withAck=True, numRetries=15, ackTimeout=1.0)
+        gotAck = self.SendHeadedMessage(message=TakeSignal, withAck=True, retries=15, ackTimeout=1.0)
         if self.dbg:
             if gotAck == False:
                 print("\tWarning, Ack not recieved!")
