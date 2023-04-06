@@ -70,7 +70,7 @@ def msgReceivedLEDs():
     led2 = digitalio.DigitalInOut(LED2)
     led1.direction = digitalio.Direction.OUTPUT
     led2.direction = digitalio.Direction.OUTPUT
-    
+
     for i in range(5):
          led1.value = True
          led2.value = True
@@ -87,4 +87,13 @@ def msgReceivedLEDs():
             time.sleep(.1)
             led2.value = False
 
- 
+def main():
+    led1 = led1 = digitalio.DigitalInOut(LED1)
+    led1.direction = digitalio.Direction.OUTPUT
+    print("Running Light Test...")
+    while(1):
+        led1.value = True
+        time.sleep(5)
+
+if __name__=="__main__":
+    main()
