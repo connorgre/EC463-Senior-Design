@@ -20,7 +20,7 @@ SyncTimeout             :float = 0.3
 TotalSyncWaitSeconds    :float = 60.0
 
 FindFrequencyListenTime:float  = 2.0
-AllowedFrequencies:"list[float]" = [float(x) for x in range(902, 928)]
+AllowedFrequencies:"list[float]" = [float(x) for x in range(902, 928, 4)]
 
 class Radio():
     def __init__(self, isTransmitter:bool, dbg:bool, frequency:float=915.0):
