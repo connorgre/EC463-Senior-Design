@@ -1,4 +1,6 @@
 from Radio import *
+from LED import *
+from threading import Thread
 
 class Receiver:
     def __init__(self, dbg:bool):
@@ -26,6 +28,7 @@ class Receiver:
         self.buzzerPin.value = True
 
     def EnterListenLoop(self):
+        t = Thread(target=msgReceivedLEDs)
         while True:
             try:
                 header, msg = self.radio.ReceiveHeadedMessage(timeout=5.0,
@@ -36,7 +39,9 @@ class Receiver:
                     print("Header: " + header)
                     print("Msg:    " + msg)
                 if msg == TakeSignal:
+                    t.run()
                     self.Buzz(buzzTime=3.0)
+                    
             except Exception as exc:
                 print("Exiting bc: " + str(exc))
                 break

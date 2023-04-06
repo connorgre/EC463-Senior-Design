@@ -22,7 +22,7 @@ import pvporcupine
 from pvrecorder import PvRecorder
 
 from Radio import *
-
+from LED import *
 
 class PorcupineDemo(Thread):
     """
@@ -193,6 +193,8 @@ class PorcupineDemo(Thread):
             print('index: %d, device name: %s' % (i, devices[i]))
 
 def main():
+    t = Thread(target=onBootLEDs)
+    t.run()
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--access_key',
