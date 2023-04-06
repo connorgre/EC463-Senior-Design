@@ -88,8 +88,10 @@ def msgReceivedLEDs():
             led2.value = False
 
 def main():
-    led1 = led1 = digitalio.DigitalInOut(LED1)
+    led1 = digitalio.DigitalInOut(LED1)
+    led2 = digitalio.DigitalInOut(LED2)
     led1.direction = digitalio.Direction.OUTPUT
+    led2.direction = digitalio.Direction.OUTPUT
     print("Running Light Test...")
     while(1):
         led1.value = True
