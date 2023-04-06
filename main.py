@@ -23,6 +23,7 @@ from pvrecorder import PvRecorder
 
 from Radio import *
 
+
 class PorcupineDemo(Thread):
     """
     Microphone Demo for Porcupine wake word engine. It creates an input audio stream from a microphone, monitors it, and
@@ -190,7 +191,6 @@ class PorcupineDemo(Thread):
 
         for i in range(len(devices)):
             print('index: %d, device name: %s' % (i, devices[i]))
-
 
 def main():
     parser = argparse.ArgumentParser()
