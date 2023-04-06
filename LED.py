@@ -12,22 +12,26 @@ LED2 = board.D3
 
 # short set of both LEDs flashing to denote device activation
 def onBootLEDs():
-        led1 = digitalio.DigitalInOut(LED1)
-        led2 = digitalio.DigitalInOut(LED2)
+    led1 = digitalio.DigitalInOut(LED1)
+    led2 = digitalio.DigitalInOut(LED2)
+    led1.direction = digitalio.Direction.OUTPUT
+    led2.direction = digitalio.Direction.OUTPUT
 
-        for i in range(2):
-             led1.value = True
-             led2.value = True
-             time.sleep(.1)
-             led1.value = False
-             led2.value = False
-             time.sleep(.1)
+    for i in range(2):
+        led1.value = True
+        led2.value = True
+        time.sleep(.1)
+        led1.value = False
+        led2.value = False
+        time.sleep(.1)
 
 # short flicker to repeatedly occur while devices are syncing
 # to be called repeatedly and thus has no internal loop
 def whileSyncingLEDs():
     led1 = digitalio.DigitalInOut(LED1)
     led2 = digitalio.DigitalInOut(LED2)
+    led1.direction = digitalio.Direction.OUTPUT
+    led2.direction = digitalio.Direction.OUTPUT
     
     led1.value = True
     time.sleep(.1)
@@ -40,6 +44,8 @@ def whileSyncingLEDs():
 def syncedLEDs():
     led1 = digitalio.DigitalInOut(LED1)
     led2 = digitalio.DigitalInOut(LED2)
+    led1.direction = digitalio.Direction.OUTPUT
+    led2.direction = digitalio.Direction.OUTPUT
 
     led1.value = True 
     led2.value = True
@@ -50,6 +56,7 @@ def syncedLEDs():
 # short symbol to denote that a message was detected and sent
 def msgSentLEDs():
     led1 = digitalio.DigitalInOut(LED1)
+    led1.direction = digitalio.Direction.OUTPUT
 
     for i in range(3):
         led1.value = True
@@ -61,7 +68,9 @@ def msgSentLEDs():
 def msgReceivedLEDs():
     led1 = digitalio.DigitalInOut(LED1)
     led2 = digitalio.DigitalInOut(LED2)
-
+    led1.direction = digitalio.Direction.OUTPUT
+    led2.direction = digitalio.Direction.OUTPUT
+    
     for i in range(5):
          led1.value = True
          led2.value = True
