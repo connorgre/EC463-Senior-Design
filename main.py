@@ -106,9 +106,6 @@ class PorcupineDemo(Thread):
                 print('  %s (%.2f)' % (keyword, sensitivity))
             print('}')
 
-            ## WE DO NOT NEED THESE
-#<<<<<<< Updated upstream
-#=======
             # initialize pins
             led = digitalio.DigitalInOut(board.D18)
             buzzer = digitalio.DigitalInOut(board.D15)
@@ -117,7 +114,6 @@ class PorcupineDemo(Thread):
             led.value = False
             buzzer.value = True # False(Low) is on
 
-#>>>>>>> Stashed changes
             while True:
                 pcm = recorder.read()
 
@@ -127,8 +123,6 @@ class PorcupineDemo(Thread):
                 result = porcupine.process(pcm)
                 if result >= 0:
                     print('[%s] Detected %s' % (str(datetime.now()), keywords[result]))
-#<<<<<<< Updated upstream
-#=======
                     # Stop recording audio to prevent overflow
                     recorder.stop()
 
@@ -145,7 +139,6 @@ class PorcupineDemo(Thread):
                     # Start recording audio again
                     recorder.start()
 
-#>>>>>>> Stashed changes
         except pvporcupine.PorcupineInvalidArgumentError as e:
             args = (
                 self._access_key,
