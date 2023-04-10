@@ -97,7 +97,7 @@ def outOfBoundsLEDs():
     led1 = digitalio.DigitalInOut(LED1)
     led2 = digitalio.DigitalInOut(LED2)
     led1.direction = digitalio.Direction.OUTPUT
-    led1.direction = digitalio.Direction.OUTPUT
+    led2.direction = digitalio.Direction.OUTPUT
     led1.value = False
     led2.value = False
 
