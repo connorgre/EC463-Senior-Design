@@ -184,7 +184,6 @@ class Radio():
             self.SendHeadedMessage(message=AckStr)
             syncedLEDs()
 
-        if result
         return result
 
     def SendTakeSignal(self):
