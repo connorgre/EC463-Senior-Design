@@ -157,6 +157,8 @@ class Radio():
                     print("Error: No Ack on sync... something went wrong")
                 else:
                     print("Synced! uuid: " + self.uuid)
+                if result == False:
+                    noSyncLEDs()
 
         #sync as receiver
         # listen for packet with msg = SYNC
@@ -181,6 +183,8 @@ class Radio():
                 print("\tSuccessfully synced.  UUID: " + self.uuid)
             self.SendHeadedMessage(message=AckStr)
             syncedLEDs()
+
+        if result
         return result
 
     def SendTakeSignal(self):
@@ -193,6 +197,8 @@ class Radio():
                 print("\tWarning, Ack not recieved!")
             else:
                 print("\t Message sent and Ack received!")
+        if gotAck == False:
+            outOfBoundsLEDs()
 
     # returns (header, msg, correctHeader) tuple, if no header is detected
     # whole thing is in msg, else, both are none.
