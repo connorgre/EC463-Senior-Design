@@ -93,8 +93,27 @@ def msgReceivedLEDs():
     forceShutOffLEDs()
 
 # periodic beep to report no ACKs
-#def outOfBoundsLEDs():
+def outOfBoundsLEDs():
+    led1 = digitalio.DigitalInOut(LED1)
+    led2 = digitalio.DigitalInOUT(LED2)
+    led1 = digitalio.Direction.OUTPUT
+    led1 = digitalio.Direction.OUTPUT
+    led1.value = False
+    led2.value = False
 
+    for i in range(3):
+        led1.value = True
+        led2.value = True
+        time.sleep(1)
+        for j in range(3):
+            led1.value = False
+            led2.value = False
+            time.sleep(.3)
+            led1.value = True
+            time.sleep(.3)
+            led1.value = False
+            led2.value = True
+            time.sleep(.3)
 
 # periodic beep to report no sync
 def noSyncLEDs():

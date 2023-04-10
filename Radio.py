@@ -193,6 +193,8 @@ class Radio():
                 print("\tWarning, Ack not recieved!")
             else:
                 print("\t Message sent and Ack received!")
+        if gotAck == False:
+            outOfBoundsLEDs()
 
     # returns (header, msg, correctHeader) tuple, if no header is detected
     # whole thing is in msg, else, both are none.
