@@ -1,4 +1,5 @@
 from Radio import *
+from LED import *
 
 class Receiver:
     def __init__(self, dbg:bool):
@@ -11,18 +12,23 @@ class Receiver:
         if (dbg):
             print("init receiver, buzz*3")
             for i in range(3):
-                self.Buzz(0.5)
+                self.Buzz(0.5, True)
 
     def Sync(self):
         result = self.radio.Sync()
         if self.dbg:
             print("Receiver sync status: " + str(result))
 
-    def Buzz(self, buzzTime:float = 0.5):
+    def Buzz(self, buzzTime:float = 0.5, isStart = True):
         if self.dbg:
             print("Buzzing for: " + str(buzzTime))
         self.buzzerPin.value = False
-        time.sleep(buzzTime)
+        if (isStart == True):
+            onBootLEDs()
+            time.sleep(buzzTime)
+        else:
+            msgReceivedLEDs()
+        # time.sleep(buzzTime)
         self.buzzerPin.value = True
 
     def EnterListenLoop(self):
@@ -36,7 +42,8 @@ class Receiver:
                     print("Header: " + header)
                     print("Msg:    " + msg)
                 if msg == TakeSignal:
-                    self.Buzz(buzzTime=3.0)
+                    self.Buzz(buzzTime=3.0, isStart = False)
+                    
             except Exception as exc:
                 print("Exiting bc: " + str(exc))
                 break

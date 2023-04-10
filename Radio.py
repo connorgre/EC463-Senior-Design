@@ -6,6 +6,8 @@ import random
 import string
 import time
 import uuid
+from threading import Thread
+from LED import *
 
 PacketHeaderLen         :int   = len(str(uuid.uuid4()))
 # packet to signal that a sync is wanted
@@ -148,6 +150,7 @@ class Radio():
             self.FindOpenFrequency()
             # send a new sync packet every 0.5 seconds
             retries = int(TotalSyncWaitSeconds / SyncTimeout)
+            whileSyncingLEDs()
             result = self.SendHeadedMessage(message=SyncStr, withAck=True, ackTimeout=SyncTimeout, retries=retries)
             if self.dbg:
                 if result == False:
@@ -165,6 +168,7 @@ class Radio():
             recMsg = ""
             self.FindFrequencyWithSync()
             while result == False:
+                whileSyncingLEDs()
                 #we actually don't need the right header for this
                 if self.dbg:
                     print("\tAttempting to sync as reciever")
@@ -176,12 +180,13 @@ class Radio():
             if self.dbg:
                 print("\tSuccessfully synced.  UUID: " + self.uuid)
             self.SendHeadedMessage(message=AckStr)
-
+            syncedLEDs()
         return result
 
     def SendTakeSignal(self):
         if self.dbg:
             print("Sending Take Signal")
+        msgSentLEDs()
         gotAck = self.SendHeadedMessage(message=TakeSignal, withAck=True, retries=15, ackTimeout=1.0)
         if self.dbg:
             if gotAck == False:
