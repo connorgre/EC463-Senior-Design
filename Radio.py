@@ -157,6 +157,8 @@ class Radio():
                     print("Error: No Ack on sync... something went wrong")
                 else:
                     print("Synced! uuid: " + self.uuid)
+                if result == False:
+                    noSyncLEDs()
 
         #sync as receiver
         # listen for packet with msg = SYNC
@@ -181,6 +183,8 @@ class Radio():
                 print("\tSuccessfully synced.  UUID: " + self.uuid)
             self.SendHeadedMessage(message=AckStr)
             syncedLEDs()
+
+        if result
         return result
 
     def SendTakeSignal(self):
