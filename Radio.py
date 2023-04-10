@@ -139,7 +139,6 @@ class Radio():
 
     # returns true if sync successful
     def Sync(self) -> bool:
-        t = Thread(target=whileSyncingLEDs)
         result = False
         # sync as transmitter
         # generate ID
@@ -147,11 +146,11 @@ class Radio():
         # keep sending until we get an ACK,
         # send confirmation of ACK
         if self.isTransmitter:
-            t.run()
             self.uuid = str(uuid.uuid4())
             self.FindOpenFrequency()
             # send a new sync packet every 0.5 seconds
             retries = int(TotalSyncWaitSeconds / SyncTimeout)
+            whileSyncingLEDs()
             result = self.SendHeadedMessage(message=SyncStr, withAck=True, ackTimeout=SyncTimeout, retries=retries)
             if self.dbg:
                 if result == False:
@@ -169,10 +168,10 @@ class Radio():
             recMsg = ""
             self.FindFrequencyWithSync()
             while result == False:
+                whileSyncingLEDs()
                 #we actually don't need the right header for this
                 if self.dbg:
                     print("\tAttempting to sync as reciever")
-                t.run()
                 header, recMsg = self.ReceiveHeadedMessage(timeout = 1, infiniteLoop=True, needRightHeader=False)
                 if None not in [header, recMsg]:
                     if (recMsg == SyncStr) and (len(header) == PacketHeaderLen):
@@ -181,14 +180,13 @@ class Radio():
             if self.dbg:
                 print("\tSuccessfully synced.  UUID: " + self.uuid)
             self.SendHeadedMessage(message=AckStr)
-
+            syncedLEDs()
         return result
 
     def SendTakeSignal(self):
-        t = Thread(target=msgSentLEDs)
         if self.dbg:
             print("Sending Take Signal")
-        t.run()
+        msgSentLEDs()
         gotAck = self.SendHeadedMessage(message=TakeSignal, withAck=True, retries=15, ackTimeout=1.0)
         if self.dbg:
             if gotAck == False:
