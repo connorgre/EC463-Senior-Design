@@ -95,7 +95,7 @@ def msgReceivedLEDs():
 # periodic beep to report no ACKs
 def outOfBoundsLEDs():
     led1 = digitalio.DigitalInOut(LED1)
-    led2 = digitalio.DigitalInOUT(LED2)
+    led2 = digitalio.DigitalInOut(LED2)
     led1 = digitalio.Direction.OUTPUT
     led1 = digitalio.Direction.OUTPUT
     led1.value = False
@@ -118,7 +118,7 @@ def outOfBoundsLEDs():
 # periodic beep to report no sync
 def noSyncLEDs():
     led1 = digitalio.DigitalInOut(LED1)
-    led2 = digitalio.DigitalInOUT(LED2)
+    led2 = digitalio.DigitalInOut(LED2)
     led1 = digitalio.Direction.OUTPUT
     led1 = digitalio.Direction.OUTPUT
     led1.value = False
