@@ -35,10 +35,10 @@ def whileSyncingLEDs():
     led2.direction = digitalio.Direction.OUTPUT
     
     led1.value = True
-    time.sleep(.1)
+    time.sleep(.05)
     led2.value = True
     led1.value = False
-    time.sleep(.1)
+    time.sleep(.05)
     led2.value = False
     forceShutOffLEDs()
 
@@ -96,8 +96,8 @@ def msgReceivedLEDs():
 def outOfBoundsLEDs():
     led1 = digitalio.DigitalInOut(LED1)
     led2 = digitalio.DigitalInOut(LED2)
-    led1 = digitalio.Direction.OUTPUT
-    led2 = digitalio.Direction.OUTPUT
+    led1.direction = digitalio.Direction.OUTPUT
+    led1.direction = digitalio.Direction.OUTPUT
     led1.value = False
     led2.value = False
 
@@ -114,22 +114,23 @@ def outOfBoundsLEDs():
             led1.value = False
             led2.value = True
             time.sleep(.3)
+    forceShutOffLEDs()
 
 # periodic beep to report no sync
 def noSyncLEDs():
     led1 = digitalio.DigitalInOut(LED1)
     led2 = digitalio.DigitalInOut(LED2)
-    led1 = digitalio.Direction.OUTPUT
-    led2 = digitalio.Direction.OUTPUT
+    led1.direction = digitalio.Direction.OUTPUT
+    led2.direction = digitalio.Direction.OUTPUT
     led1.value = False
     led2.value = False
 
-    for i in range(2):
+    for i in range(5):
         led1.value = True
-        time.sleep(.3)
+        time.sleep(.8)
         led2.value = True
         led1.value = False
-        time.sleep(.3)
+        time.sleep(.8)
         led2.value = False
     
     forceShutOffLEDs()

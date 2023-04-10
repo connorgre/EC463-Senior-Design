@@ -125,6 +125,7 @@ class Radio():
         while foundFreq == False:
             for freq in AllowedFrequencies:
                 print("Checking Frequency: " + str(freq))
+                whileSyncingLEDs()
                 self.freq = freq
                 self.ConnectToRadio()
 
@@ -136,7 +137,6 @@ class Radio():
                         print("\tFound open frequency: " + str(self.freq))
                     foundFreq = True
                     break
-
     # returns true if sync successful
     def Sync(self) -> bool:
         result = False
