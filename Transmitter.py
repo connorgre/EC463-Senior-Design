@@ -22,7 +22,6 @@ import pvporcupine
 from pvrecorder import PvRecorder
 
 from Radio import *
-from LED import *
 
 class PorcupineDemo(Thread):
     """
@@ -107,14 +106,6 @@ class PorcupineDemo(Thread):
                 print('  %s (%.2f)' % (keyword, sensitivity))
             print('}')
 
-            # initialize pins
-            led = digitalio.DigitalInOut(board.D18)
-            buzzer = digitalio.DigitalInOut(board.D15)
-            led.direction = digitalio.Direction.OUTPUT
-            buzzer.direction = digitalio.Direction.OUTPUT
-            led.value = False
-            buzzer.value = True # False(Low) is on
-
             while True:
                 pcm = recorder.read()
 
@@ -127,15 +118,7 @@ class PorcupineDemo(Thread):
                     # Stop recording audio to prevent overflow
                     recorder.stop()
 
-                    # enable buzzer and light
-                    led.value =  True
-                    buzzer.value = False
-
-                    #this takes 1 second to send
                     self.radio.SendTakeSignal()
-                    #time.sleep(5) # eventually turn off as to allow further demonstration
-                    led.value = False
-                    buzzer.value = True
 
                     # Start recording audio again
                     recorder.start()
@@ -185,7 +168,7 @@ class PorcupineDemo(Thread):
         for i in range(len(devices)):
             print('index: %d, device name: %s' % (i, devices[i]))
 
-def main():
+def TransmitterMain():
     t = Thread(target=onBootLEDs)
     t.run()
     parser = argparse.ArgumentParser()
@@ -259,4 +242,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    TransmitterMain()

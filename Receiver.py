@@ -8,7 +8,7 @@ class Receiver:
         self.dbg = dbg
 
         self.buzzerPin.direction = digitalio.Direction.OUTPUT
-        self.buzzerPin.value = True
+        self.buzzerPin.value = False
         if (dbg):
             print("init receiver, buzz*3")
             for i in range(3):
@@ -22,14 +22,14 @@ class Receiver:
     def Buzz(self, buzzTime:float = 0.5, isStart = True):
         if self.dbg:
             print("Buzzing for: " + str(buzzTime))
-        self.buzzerPin.value = False
+        self.buzzerPin.value = True
         if (isStart == True):
             onBootLEDs()
             time.sleep(buzzTime)
         else:
             msgReceivedLEDs()
         # time.sleep(buzzTime)
-        self.buzzerPin.value = True
+        self.buzzerPin.value = False
 
     def EnterListenLoop(self):
         while True:
@@ -50,7 +50,7 @@ class Receiver:
 
 
 
-def main():
+def ReceiverMain():
 
     device = Receiver(dbg=True)
     device.Sync()
@@ -58,4 +58,4 @@ def main():
     return
 
 if __name__=="__main__":
-    main()
+    ReceiverMain()

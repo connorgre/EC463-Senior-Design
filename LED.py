@@ -7,8 +7,8 @@ import board
 import time
 
 # Constants for LED pins. Alterable.
-LED1 = board.D12
-LED2 = board.D13
+LED1 = board.D4
+LED2 = board.D22
 
 # short set of both LEDs flashing to denote device activation
 def onBootLEDs():
